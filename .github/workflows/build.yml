@@ -18,6 +18,8 @@ jobs:
   build-aarch64:
     name: aarch64-unknown-linux-gnu
     runs-on: ubuntu-22.04-arm
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -60,6 +62,29 @@ jobs:
       - name: smoke-6-analyze
         run: target/aarch64-unknown-linux-gnu/release/$BIN_NAME analyze --model /tmp/model.bin --text "the raid controller beeps and the disk is gone" --json
 
+      - name: 诊断输出
+        if: failure()
+        run: |
+          {
+            echo "=== uname ==="; uname -a
+            echo "=== ls release ==="; ls -la target/aarch64-unknown-linux-gnu/release/
+            echo "=== analyze ==="
+            RUST_BACKTRACE=1 target/aarch64-unknown-linux-gnu/release/$BIN_NAME analyze --model /tmp/model.bin --text "the raid controller beeps and the disk is gone" --json
+            echo "exit=$?"
+            echo "=== analyze no-json ==="
+            target/aarch64-unknown-linux-gnu/release/$BIN_NAME analyze --model /tmp/model.bin --text "the raid controller beeps and the disk is gone"
+            echo "exit=$?"
+            echo "=== help ==="
+            target/aarch64-unknown-linux-gnu/release/$BIN_NAME analyze --help
+            echo "exit=$?"
+          } > ci-diag.txt 2>&1
+          git config user.name ci
+          git config user.email ci@example.com
+          git checkout -B ci-diag-linux
+          git add -f ci-diag.txt
+          git commit -m "diag linux"
+          git push -f origin ci-diag-linux
+
       - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
@@ -71,6 +96,8 @@ jobs:
   build-windows:
     name: windows-x86_64
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -88,28 +115,47 @@ jobs:
         run: cargo build --release --target x86_64-pc-windows-msvc
 
       - name: smoke-1-version
-        shell: pwsh
-        run: target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe --version
+        shell: bash
+        run: target/x86_64-pc-windows-msvc/release/$BIN_NAME.exe --version
 
       - name: smoke-2-train
-        shell: pwsh
-        run: target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe train --input data/train.txt --output model-ci.bin --epoch 20 --threads 2
+        shell: bash
+        run: target/x86_64-pc-windows-msvc/release/$BIN_NAME.exe train --input data/train.txt --output model-ci.bin --epoch 20 --threads 2
 
       - name: smoke-3-predict
-        shell: pwsh
+        shell: bash
         run: |
-          $pred = target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe predict --model model-ci.bin --text "mysql connection pool is exhausted" -k 2
-          Write-Host $pred
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          if ($pred -notmatch "__label__") { Write-Error "预测结果中没有标签"; exit 1 }
+          target/x86_64-pc-windows-msvc/release/$BIN_NAME.exe predict --model model-ci.bin --text "mysql connection pool is exhausted" -k 2 | tee pred.txt
+          grep -q '__label__' pred.txt
 
       - name: smoke-4-info
-        shell: pwsh
-        run: target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe info --model model-ci.bin
+        shell: bash
+        run: target/x86_64-pc-windows-msvc/release/$BIN_NAME.exe info --model model-ci.bin
 
       - name: smoke-5-analyze
-        shell: pwsh
-        run: target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe analyze --model model-ci.bin --text "the raid controller beeps and the disk is gone" --json
+        shell: bash
+        run: target/x86_64-pc-windows-msvc/release/$BIN_NAME.exe analyze --model model-ci.bin --text "the raid controller beeps and the disk is gone" --json
+
+      - name: 诊断输出
+        if: failure()
+        shell: bash
+        run: |
+          {
+            echo "=== pwd ==="; pwd
+            echo "=== ls release ==="; ls -la target/x86_64-pc-windows-msvc/release/
+            echo "=== version ==="
+            target/x86_64-pc-windows-msvc/release/$BIN_NAME.exe --version
+            echo "exit=$?"
+            echo "=== analyze ==="
+            RUST_BACKTRACE=1 target/x86_64-pc-windows-msvc/release/$BIN_NAME.exe analyze --model model-ci.bin --text "the raid controller beeps and the disk is gone" --json
+            echo "exit=$?"
+          } > ci-diag.txt 2>&1
+          git config user.name ci
+          git config user.email ci@example.com
+          git checkout -B ci-diag-win
+          git add -f ci-diag.txt
+          git commit -m "diag windows"
+          git push -f origin ci-diag-win
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
