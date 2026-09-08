@@ -13,51 +13,45 @@ env:
   BIN_NAME: rustfasttext
 
 jobs:
-  # aarch64-unknown-linux-gnu：使用 cross（Docker + aarch64 交叉工具链）编译，
-  # 产物基于较低版本 glibc，可直接拷贝到 aarch64 服务器运行，无需任何环境。
+  # aarch64-unknown-linux-gnu：在 GitHub 官方 ARM64 runner 上原生编译，
+  # 无需 Docker / 交叉工具链，产物为真正的 aarch64 ELF，可直接拷贝到 ARM 服务器运行。
   build-aarch64:
     name: aarch64-unknown-linux-gnu
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-arm
     steps:
       - uses: actions/checkout@v4
 
       - name: 安装 Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
 
       - name: 缓存
         uses: Swatinem/rust-cache@v2
         with:
           key: aarch64-unknown-linux-gnu
 
-      - name: 安装 cross
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cross
-
-      - name: 交叉编译
-        run: cross build --release --target aarch64-unknown-linux-gnu
+      - name: 编译
+        run: cargo build --release --target aarch64-unknown-linux-gnu
 
       - name: 校验产物格式
         run: |
+          uname -m
           file "target/aarch64-unknown-linux-gnu/release/$BIN_NAME"
           file "target/aarch64-unknown-linux-gnu/release/$BIN_NAME" | grep -q aarch64
 
-      - name: 注册 QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      - name: aarch64 冒烟测试（QEMU 模拟运行）
+      - name: aarch64 原生冒烟测试
         run: |
-          docker run --rm --platform linux/arm64 -v "$PWD:/work" -w /work ubuntu:22.04 bash -c "
-            set -e
-            ./target/aarch64-unknown-linux-gnu/release/$BIN_NAME --version
-            ./target/aarch64-unknown-linux-gnu/release/$BIN_NAME train --input data/train.txt --output /tmp/model.bin --epoch 5 --threads 1
-            ./target/aarch64-unknown-linux-gnu/release/$BIN_NAME info --model /tmp/model.bin | tee /tmp/info.txt
-            ./target/aarch64-unknown-linux-gnu/release/$BIN_NAME predict --model /tmp/model.bin --text 'mysql connection pool is exhausted' -k 2 | tee /tmp/pred.txt
-            grep -q '__label__' /tmp/pred.txt
-            grep -q '__label__' /tmp/info.txt
-          "
+          set -e
+          BIN="target/aarch64-unknown-linux-gnu/release/$BIN_NAME"
+          $BIN --version
+          $BIN train --input data/train.txt --output /tmp/model.bin --epoch 20 --threads 2
+          $BIN info --model /tmp/model.bin | tee /tmp/info.txt
+          $BIN predict --model /tmp/model.bin --text "mysql connection pool is exhausted" -k 2 | tee /tmp/pred.txt
+          $BIN predict --model /tmp/model.bin --input data/test.txt -k 1
+          $BIN analyze --model /tmp/model.bin --text "the raid controller beeps and the disk is gone" --json
+          grep -q '__label__' /tmp/pred.txt
+          grep -q '__label__' /tmp/info.txt
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
@@ -91,12 +85,13 @@ jobs:
         run: |
           $exe = "target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe"
           & $exe --version
-          & $exe train --input data/train.txt --output model-ci.bin --epoch 5 --threads 1
+          & $exe train --input data/train.txt --output model-ci.bin --epoch 20 --threads 2
           $pred = & $exe predict --model model-ci.bin --text "mysql connection pool is exhausted" -k 2
           Write-Host $pred
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if ($pred -notmatch "__label__") { Write-Error "预测结果中没有标签"; exit 1 }
           & $exe info --model model-ci.bin
+          & $exe analyze --model model-ci.bin --text "the raid controller beeps and the disk is gone" --json
 
       - name: 上传产物
         uses: actions/upload-artifact@v4

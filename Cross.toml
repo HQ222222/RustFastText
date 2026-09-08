@@ -1,9 +1,0 @@
-# cross 交叉编译配置（aarch64-unknown-linux-gnu）
-# 文档: https://github.com/cross-rs/cross
-[target.aarch64-unknown-linux-gnu]
-# 容器内可能预装了较旧的 Rust，先升级到最新 stable，避免依赖要求更高版本而编译失败
-pre-build = [
-    "rustup update stable || true",
-    "rustup default stable || true",
-    "rustc --version",
-]
