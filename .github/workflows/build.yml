@@ -1,0 +1,129 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  BIN_NAME: rustfasttext
+
+jobs:
+  # aarch64-unknown-linux-gnu：使用 cross（Docker + aarch64 交叉工具链）编译，
+  # 产物基于较低版本 glibc，可直接拷贝到 aarch64 服务器运行，无需任何环境。
+  build-aarch64:
+    name: aarch64-unknown-linux-gnu
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 缓存
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: aarch64-unknown-linux-gnu
+
+      - name: 安装 cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
+
+      - name: 交叉编译
+        run: cross build --release --target aarch64-unknown-linux-gnu
+
+      - name: 校验产物格式
+        run: |
+          file "target/aarch64-unknown-linux-gnu/release/$BIN_NAME"
+          file "target/aarch64-unknown-linux-gnu/release/$BIN_NAME" | grep -q aarch64
+
+      - name: 注册 QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: aarch64 冒烟测试（QEMU 模拟运行）
+        run: |
+          docker run --rm --platform linux/arm64 -v "$PWD:/work" -w /work ubuntu:22.04 bash -c "
+            set -e
+            ./target/aarch64-unknown-linux-gnu/release/$BIN_NAME --version
+            ./target/aarch64-unknown-linux-gnu/release/$BIN_NAME train --input data/train.txt --output /tmp/model.bin --epoch 5 --threads 1
+            ./target/aarch64-unknown-linux-gnu/release/$BIN_NAME info --model /tmp/model.bin | tee /tmp/info.txt
+            ./target/aarch64-unknown-linux-gnu/release/$BIN_NAME predict --model /tmp/model.bin --text 'mysql connection pool is exhausted' -k 2 | tee /tmp/pred.txt
+            grep -q '__label__' /tmp/pred.txt
+            grep -q '__label__' /tmp/info.txt
+          "
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustfasttext-aarch64-unknown-linux-gnu
+          path: target/aarch64-unknown-linux-gnu/release/${{ env.BIN_NAME }}
+          if-no-files-found: error
+
+  # Windows x86_64（x64）原生编译，windows-latest 默认工具链即 x86_64-pc-windows-msvc
+  build-windows:
+    name: windows-x86_64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: 缓存
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: x86_64-pc-windows-msvc
+
+      - name: 编译
+        run: cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Windows 冒烟测试
+        shell: pwsh
+        run: |
+          $exe = "target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe"
+          & $exe --version
+          & $exe train --input data/train.txt --output model-ci.bin --epoch 5 --threads 1
+          $pred = & $exe predict --model model-ci.bin --text "mysql connection pool is exhausted" -k 2
+          Write-Host $pred
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($pred -notmatch "__label__") { Write-Error "预测结果中没有标签"; exit 1 }
+          & $exe info --model model-ci.bin
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustfasttext-x86_64-pc-windows-msvc
+          path: target/x86_64-pc-windows-msvc/release/${{ env.BIN_NAME }}.exe
+          if-no-files-found: error
+
+  release:
+    name: github-release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-aarch64, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 下载全部产物
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: 查看产物
+        run: ls -lh artifacts
+
+      - name: 发布 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true

@@ -1,0 +1,126 @@
+__label__network the server cannot connect to the internet after reboot
+__label__network network latency between two data centers is very high
+__label__network vpn tunnel keeps dropping every few minutes
+__label__network dns resolution failed for the internal domain
+__label__network ping packet loss on the uplink interface
+__label__network firewall rule blocks port 443 outbound
+__label__network load balancer health check failed for backend nodes
+__label__network ssh connection reset by peer
+__label__network nginx returned 502 bad gateway
+__label__network tcp connection timeout when calling the payment api
+__label__network routing table lost the default gateway
+__label__network bandwidth usage reached the monthly limit
+__label__network ssl handshake failed with unknown ca
+__label__network ip address conflict detected on the lan
+__label__network switch port is flapping up and down
+__label__network cdn edge node returns stale content
+__label__network proxy server refuses connections from the new subnet
+__label__network mtu mismatch causes fragmented packets to drop
+__label__network network interface eth0 is down after the upgrade
+__label__network traceroute shows a loop between two routers
+__label__network kubernetes service cannot be reached from another namespace
+__label__network dns server responds slowly for external queries
+__label__network cannot reach the internal registry over https
+__label__network network policy blocks pod to pod traffic
+__label__network wifi signal is weak in the meeting room
+__label__database mysql connection pool is exhausted
+__label__database slow query takes more than thirty seconds
+__label__database deadlock detected when updating the orders table
+__label__database database disk usage is above ninety percent
+__label__database replication lag on the read replica is growing
+__label__database postgres vacuum cannot finish in time
+__label__database redis memory reached the maxmemory policy limit
+__label__database mongodb replica set primary election failed
+__label__database missing index causes a full table scan
+__label__database database backup failed last night
+__label__database too many connections error from the application
+__label__database query plan changed after the statistics update
+__label__database cannot start mysql because of a corrupt ibdata file
+__label__database redis keyspace eviction started unexpectedly
+__label__database foreign key constraint fails on insert
+__label__database database migration timeout on a large table
+__label__database connection refused to port 3306
+__label__database clickhouse merge tree parts are too many
+__label__database oracle listener is not accepting new sessions
+__label__database binlog grew too large and filled the disk
+__label__database sql syntax error in the new migration script
+__label__database database cpu is saturated by reporting queries
+__label__database cannot drop the old partition because of locks
+__label__database elasticsearch cluster status is red
+__label__database mysql slave io thread stopped
+__label__database table row count mismatch after the sync job
+__label__deploy ci pipeline failed on the build stage
+__label__deploy docker image push to the registry was rejected
+__label__deploy helm upgrade rolled back automatically
+__label__deploy kubernetes pod is stuck in crashloopbackoff
+__label__deploy canary release shows a higher error rate
+__label__deploy deployment timed out waiting for the readiness probe
+__label__deploy artifact version was not found in nexus
+__label__deploy terraform apply failed because of the state lock
+__label__deploy blue green switch did not update the dns record
+__label__deploy rollback to the previous release finished with warnings
+__label__deploy unit tests failed after merging the feature branch
+__label__deploy container fails to start because of a missing env variable
+__label__deploy github action runner ran out of disk space
+__label__deploy rolling update restarts all pods at once
+__label__deploy image pull backoff because of the wrong tag
+__label__deploy helm chart values file has invalid yaml
+__label__deploy deployment manifest validation rejected the new service
+__label__deploy staging deploy succeeded but the smoke test failed
+__label__deploy npm install failed with a dependency conflict
+__label__deploy cannot publish package because the version already exists
+__label__deploy kubectl apply failed with a forbidden rbac error
+__label__deploy build cache miss makes the pipeline very slow
+__label__deploy release notes generation step crashed
+__label__deploy daemonset did not schedule on the new node
+__label__deploy git tag was pushed before the merge commit
+__label__account user cannot login with the correct password
+__label__account password reset email never arrived
+__label__account two factor authentication code is always invalid
+__label__account account locked after too many failed attempts
+__label__account sso login redirects to a blank page
+__label__account permission denied when accessing the admin console
+__label__account new user was not added to the ldap group
+__label__account api token expired and needs renewal
+__label__account oauth callback url mismatch error
+__label__account role assignment does not take effect immediately
+__label__account user profile shows the wrong department
+__label__account cannot revoke an old access key
+__label__account mfa device was lost and needs a reset
+__label__account session expires immediately after login
+__label__account service account secret rotation failed
+__label__account iam policy is too permissive and got rejected
+__label__account signup form rejects valid email addresses
+__label__account ldap sync stopped updating new accounts
+__label__account user was accidentally removed from the project
+__label__account login page shows an invalid csrf token
+__label__account cannot change the primary email address
+__label__account admin wants to disable a former employee account
+__label__account jwt signature verification failed
+__label__account brute force protection blocks the whole office ip
+__label__account password does not meet the complexity requirements
+__label__hardware disk smart errors reported on sda
+__label__hardware server fan speed is abnormally high
+__label__hardware memory module failed the health check
+__label__hardware power supply unit is running on backup
+__label__hardware cpu temperature above ninety degrees
+__label__hardware raid array is in a degraded state
+__label__hardware nvme ssd wear level reached the threshold
+__label__hardware chassis intrusion sensor triggered
+__label__hardware machine rebooted unexpectedly last night
+__label__hardware bios battery is low on the host
+__label__hardware network card firmware crashed under load
+__label__hardware usb device is not recognized on the node
+__label__hardware gpu card disappeared from the pci bus
+__label__hardware hard drive click noise before failure
+__label__hardware server does not power on after maintenance
+__label__hardware memory usage grows until the machine hangs
+__label__hardware bmc web console is unreachable
+__label__hardware disk controller timeout causes io errors
+__label__hardware cooling failure in rack twelve
+__label__hardware battery backup test failed this morning
+__label__hardware motherboard beeps on boot
+__label__hardware ssd write performance dropped to a crawl
+__label__hardware cpu cores are disabled after the microcode update
+__label__hardware hardware watchdog reset the server
+__label__hardware faulty cable causes crc errors on the link

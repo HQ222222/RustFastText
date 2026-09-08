@@ -1,0 +1,15 @@
+__label__database mysql connection pool is exhausted
+__label__network dns resolution failed for the internal domain
+__label__deploy helm upgrade rolled back automatically
+__label__account two factor authentication code is always invalid
+__label__hardware raid array is in a degraded state
+__label__database deadlock detected when updating the orders table
+__label__network load balancer health check failed for backend nodes
+__label__deploy image pull backoff because of the wrong tag
+__label__account sso login redirects to a blank page
+__label__hardware cpu temperature above ninety degrees
+__label__database replication lag on the read replica is growing
+__label__network firewall rule blocks port 443 outbound
+__label__deploy canary release shows a higher error rate
+__label__account api token expired and needs renewal
+__label__hardware disk smart errors reported on sda

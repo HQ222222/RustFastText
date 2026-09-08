@@ -1,0 +1,28 @@
+[package]
+name = "rustfasttext"
+version = "0.1.0"
+edition = "2021"
+description = "fastText 小模型 + 大模型(LLM) 混合文本分类 CLI，支持 aarch64-unknown-linux-gnu / Windows x86_64"
+license = "MIT"
+readme = "README.md"
+
+[[bin]]
+name = "rustfasttext"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive", "env"] }
+fasttext = "0.8"
+reqwest = { version = "0.12", default-features = false, features = [
+    "blocking",
+    "json",
+    "rustls-tls",
+] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+strip = true
+lto = "thin"
+panic = "unwind"
