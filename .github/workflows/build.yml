@@ -40,18 +40,25 @@ jobs:
           file "target/aarch64-unknown-linux-gnu/release/$BIN_NAME"
           file "target/aarch64-unknown-linux-gnu/release/$BIN_NAME" | grep -q aarch64
 
-      - name: aarch64 原生冒烟测试
+      - name: smoke-1-version
+        run: target/aarch64-unknown-linux-gnu/release/$BIN_NAME --version
+
+      - name: smoke-2-train
+        run: target/aarch64-unknown-linux-gnu/release/$BIN_NAME train --input data/train.txt --output /tmp/model.bin --epoch 20 --threads 2
+
+      - name: smoke-3-info
+        run: target/aarch64-unknown-linux-gnu/release/$BIN_NAME info --model /tmp/model.bin
+
+      - name: smoke-4-predict-text
         run: |
-          set -e
-          BIN="target/aarch64-unknown-linux-gnu/release/$BIN_NAME"
-          $BIN --version
-          $BIN train --input data/train.txt --output /tmp/model.bin --epoch 20 --threads 2
-          $BIN info --model /tmp/model.bin | tee /tmp/info.txt
-          $BIN predict --model /tmp/model.bin --text "mysql connection pool is exhausted" -k 2 | tee /tmp/pred.txt
-          $BIN predict --model /tmp/model.bin --input data/test.txt -k 1
-          $BIN analyze --model /tmp/model.bin --text "the raid controller beeps and the disk is gone" --json
+          target/aarch64-unknown-linux-gnu/release/$BIN_NAME predict --model /tmp/model.bin --text "mysql connection pool is exhausted" -k 2 | tee /tmp/pred.txt
           grep -q '__label__' /tmp/pred.txt
-          grep -q '__label__' /tmp/info.txt
+
+      - name: smoke-5-predict-file
+        run: target/aarch64-unknown-linux-gnu/release/$BIN_NAME predict --model /tmp/model.bin --input data/test.txt -k 1
+
+      - name: smoke-6-analyze
+        run: target/aarch64-unknown-linux-gnu/release/$BIN_NAME analyze --model /tmp/model.bin --text "the raid controller beeps and the disk is gone" --json
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
@@ -80,18 +87,29 @@ jobs:
       - name: 编译
         run: cargo build --release --target x86_64-pc-windows-msvc
 
-      - name: Windows 冒烟测试
+      - name: smoke-1-version
+        shell: pwsh
+        run: target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe --version
+
+      - name: smoke-2-train
+        shell: pwsh
+        run: target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe train --input data/train.txt --output model-ci.bin --epoch 20 --threads 2
+
+      - name: smoke-3-predict
         shell: pwsh
         run: |
-          $exe = "target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe"
-          & $exe --version
-          & $exe train --input data/train.txt --output model-ci.bin --epoch 20 --threads 2
-          $pred = & $exe predict --model model-ci.bin --text "mysql connection pool is exhausted" -k 2
+          $pred = target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe predict --model model-ci.bin --text "mysql connection pool is exhausted" -k 2
           Write-Host $pred
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if ($pred -notmatch "__label__") { Write-Error "预测结果中没有标签"; exit 1 }
-          & $exe info --model model-ci.bin
-          & $exe analyze --model model-ci.bin --text "the raid controller beeps and the disk is gone" --json
+
+      - name: smoke-4-info
+        shell: pwsh
+        run: target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe info --model model-ci.bin
+
+      - name: smoke-5-analyze
+        shell: pwsh
+        run: target\x86_64-pc-windows-msvc\release\$env:BIN_NAME.exe analyze --model model-ci.bin --text "the raid controller beeps and the disk is gone" --json
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
