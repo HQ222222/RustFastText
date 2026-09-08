@@ -149,17 +149,17 @@ struct LlmCmd {
 struct LlmOpts {
     /// OpenAI 兼容服务地址，如 https://api.openai.com/v1
     #[arg(long, env = "LLM_BASE_URL", default_value = "")]
-    base_url: String,
+    llm_base_url: String,
 
     #[arg(long, env = "LLM_API_KEY", default_value = "")]
-    api_key: String,
+    llm_api_key: String,
 
     #[arg(long, env = "LLM_MODEL", default_value = "")]
-    model: String,
+    llm_model: String,
 
     /// 超时时间（秒）
     #[arg(long, env = "LLM_TIMEOUT_SECS", default_value_t = 30)]
-    timeout: u64,
+    llm_timeout: u64,
 }
 
 #[derive(Args, Debug)]
@@ -231,7 +231,7 @@ fn cmd_predict(c: PredictCmd) -> Result<()> {
 fn cmd_analyze(c: AnalyzeCmd) -> Result<()> {
     let clf = Classifier::load(&c.model)?;
     let labels = clf.labels();
-    let cfg = LlmConfig::new(c.llm.base_url, c.llm.api_key, c.llm.model, c.llm.timeout);
+    let cfg = LlmConfig::new(c.llm.llm_base_url, c.llm.llm_api_key, c.llm.llm_model, c.llm.llm_timeout);
     let client = if cfg.is_configured() {
         Some(LlmClient::new(&cfg)?)
     } else {
@@ -294,9 +294,9 @@ fn cmd_analyze(c: AnalyzeCmd) -> Result<()> {
 }
 
 fn cmd_llm(c: LlmCmd) -> Result<()> {
-    let cfg = LlmConfig::new(c.llm.base_url, c.llm.api_key, c.llm.model, c.llm.timeout);
+    let cfg = LlmConfig::new(c.llm.llm_base_url, c.llm.llm_api_key, c.llm.llm_model, c.llm.llm_timeout);
     if !cfg.is_configured() {
-        anyhow::bail!("未配置大模型：请通过 --base-url / --api-key / --model 或 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL 环境变量提供");
+        anyhow::bail!("未配置大模型：请通过 --llm-base-url / --llm-api-key / --llm-model 或 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL 环境变量提供");
     }
     let client = LlmClient::new(&cfg)?;
     for text in read_texts(c.text, c.input)? {

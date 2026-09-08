@@ -34,10 +34,10 @@ rustfasttext info --model model.bin
 
 | 环境变量 | CLI 参数 | 说明 |
 | --- | --- | --- |
-| `LLM_BASE_URL` | `--base-url` | OpenAI 兼容地址，如 `https://api.openai.com/v1`、`https://dashscope.aliyuncs.com/compatible-mode/v1` |
-| `LLM_API_KEY` | `--api-key` | API Key |
-| `LLM_MODEL` | `--model` | 模型名 |
-| `LLM_TIMEOUT_SECS` | `--timeout` | 超时秒数，默认 30 |
+| `LLM_BASE_URL` | `--llm-base-url` | OpenAI 兼容地址，如 `https://api.openai.com/v1`、`https://dashscope.aliyuncs.com/compatible-mode/v1` |
+| `LLM_API_KEY` | `--llm-api-key` | API Key |
+| `LLM_MODEL` | `--llm-model` | 模型名 |
+| `LLM_TIMEOUT_SECS` | `--llm-timeout` | 超时秒数，默认 30 |
 
 未配置大模型时，`analyze` 会自动降级为纯小模型结果（不会报错）。
 

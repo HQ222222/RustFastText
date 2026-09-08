@@ -65,6 +65,7 @@ jobs:
       - name: 诊断输出
         if: failure()
         run: |
+          set +e
           {
             echo "=== uname ==="; uname -a
             echo "=== ls release ==="; ls -la target/aarch64-unknown-linux-gnu/release/
@@ -140,6 +141,7 @@ jobs:
         if: failure()
         shell: bash
         run: |
+          set +e
           {
             echo "=== pwd ==="; pwd
             echo "=== ls release ==="; ls -la target/x86_64-pc-windows-msvc/release/
